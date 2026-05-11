@@ -380,6 +380,7 @@ async function trainModel() {
     const epochPositions = [...positions];
     state.model.shuffle(epochPositions);
     let lossTotal = 0;
+    let samplesProcessed = 0;
 
     for (let sampleIndex = 0; sampleIndex < epochPositions.length; sampleIndex++) {
       if (state.stopRequested) {
@@ -390,6 +391,7 @@ async function trainModel() {
         epochPositions[sampleIndex],
         config.learningRate
       );
+      samplesProcessed++;
       completedSteps++;
 
       if (sampleIndex % 40 === 0) {
@@ -402,12 +404,14 @@ async function trainModel() {
       }
     }
 
-    const averageLoss = lossTotal / epochPositions.length;
-    addLossLog(epoch, averageLoss);
-    setProgress(
-      (completedSteps / totalSteps) * 100,
-      `Epoch ${epoch}/${config.epochs} complete · loss ${averageLoss.toFixed(4)}`
-    );
+    if (samplesProcessed > 0) {
+      const averageLoss = lossTotal / samplesProcessed;
+      addLossLog(epoch, averageLoss);
+      setProgress(
+        (completedSteps / totalSteps) * 100,
+        `Epoch ${epoch}/${config.epochs} complete · loss ${averageLoss.toFixed(4)}`
+      );
+    }
     await nextFrame();
   }
 
